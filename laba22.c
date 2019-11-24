@@ -35,7 +35,6 @@ void main(int argc, char **argv){
     int fd;
     char buf[BUF_SIZE];
     char username[80], ttyname[80];
-    char *message = argv[1];
 
     if(fork() == 0){
         fd = creat(FILE_NAME, 0666);
@@ -50,7 +49,13 @@ void main(int argc, char **argv){
         int j = 0;
         int nameflag = 1;
         int ttyflag = 0;
-        // int db_spaceflag = 0;
+        char message[80];
+
+        sigsetjmp(obl, 1);
+        printf("Type your message:\n");
+        fgets(message, 80, stdin);
+        message[strlen(message) - 1] = '\0'; 
+        
 
         for(int i = 0; i < readed_size; ++i) {
             if(nameflag) {
@@ -61,7 +66,6 @@ void main(int argc, char **argv){
                     nameflag = 0;
                     username[j] = '\0';
                     j = 0;
-                    // db_spaceflag = 1;
                     ttyflag = 1;
                     i += 2;
                 }
@@ -79,7 +83,6 @@ void main(int argc, char **argv){
                     ttyname[j] = '\0';
                     j = 0;
                     ttyflag = 0;
-                    // remove it from loop?
                     char cmd[128];
                     strcpy(cmd, "echo ");
                     strcat(cmd, message);
@@ -102,5 +105,6 @@ void main(int argc, char **argv){
     sigsetjmp(obl, 1);
     sleep(1);
     sleep(1);
-    printf("Halas!\n");
+    sleep(1);
+    printf("Farewell!\n");
 }
