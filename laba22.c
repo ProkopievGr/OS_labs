@@ -13,15 +13,25 @@
 
 sigjmp_buf obl;
 int interupt_counter = 0;
+char term_names[BUF_SIZE];
+
 
 void handler(){
     printf("\nInteruption!\n");
+    interupt_counter++;
     if(interupt_counter % 5 == 0) {
         // print names of terminals received the message
+        printf("%s", term_names);
     }
+    siglongjmp(obl, 1);
 }
 
 void main(int argc, char **argv){
+    struct sigaction interupt;
+    interupt.sa_handler = handler;
+    sigaction(SIGINT, &interupt, 0);
+
+
     int fd;
     char buf[BUF_SIZE];
     char username[80], ttyname[80];
@@ -61,9 +71,15 @@ void main(int argc, char **argv){
                     ttyname[j] = buf[i];
                     j++;
                 } else {
+                    char for_buf[80];
+                    strcpy(for_buf, ttyname);
+                    for_buf[j] = '\n';
+                    strcat(term_names, for_buf);
+
                     ttyname[j] = '\0';
                     j = 0;
                     ttyflag = 0;
+                    // remove it from loop?
                     char cmd[128];
                     strcpy(cmd, "echo ");
                     strcat(cmd, message);
@@ -83,5 +99,8 @@ void main(int argc, char **argv){
 
 
     }
-
+    sigsetjmp(obl, 1);
+    sleep(1);
+    sleep(1);
+    printf("Halas!\n");
 }
