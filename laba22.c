@@ -14,7 +14,7 @@
 sigjmp_buf obl;
 int interupt_counter = 0;
 char term_names[BUF_SIZE];
-
+#define PATH "/dev/"
 
 void handler(){
     printf("\nInteruption!\n");
@@ -50,11 +50,13 @@ void main(int argc, char **argv){
         int nameflag = 1;
         int ttyflag = 0;
         char message[80];
+        char for_buf[80];
+        char ttypath[80];
 
         sigsetjmp(obl, 1);
         printf("Type your message:\n");
         fgets(message, 80, stdin);
-        message[strlen(message) - 1] = '\0'; 
+        message[strlen(message) - 1] = '\n';
         
 
         for(int i = 0; i < readed_size; ++i) {
@@ -75,7 +77,6 @@ void main(int argc, char **argv){
                     ttyname[j] = buf[i];
                     j++;
                 } else {
-                    char for_buf[80];
                     strcpy(for_buf, ttyname);
                     for_buf[j] = '\n';
                     strcat(term_names, for_buf);
@@ -83,26 +84,23 @@ void main(int argc, char **argv){
                     ttyname[j] = '\0';
                     j = 0;
                     ttyflag = 0;
-                    char cmd[128];
-                    strcpy(cmd, "echo ");
-                    strcat(cmd, message);
-                    strcat(cmd, " | write ");
-                    strcat(cmd, username);
-                    strcat(cmd, " ");
-                    strcat(cmd, ttyname);
-                    system(cmd);
+                    int termd;
+                    strcpy(ttypath, PATH);
+                    strcat(ttypath, ttyname);
+                    termd = open(ttypath, O_RDWR);
+                    write(termd, message, strlen(message));
+                    close(termd);
 
                 }
             }
             if(buf[i] == '\n') {
                 nameflag = 1;
             }
-
         }
-
-
     }
     sigsetjmp(obl, 1);
+    sleep(1);
+    sleep(1);
     sleep(1);
     sleep(1);
     sleep(1);
