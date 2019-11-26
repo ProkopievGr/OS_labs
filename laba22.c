@@ -10,17 +10,16 @@
 
 #define BUF_SIZE 2048
 #define FILE_NAME "users.txt"
+#define PATH "/dev/"
 
 sigjmp_buf obl;
 int interupt_counter = 0;
 char term_names[BUF_SIZE];
-#define PATH "/dev/"
 
 void handler(){
     printf("\nInteruption!\n");
     interupt_counter++;
     if(interupt_counter % 5 == 0) {
-        // print names of terminals received the message
         printf("%s", term_names);
     }
     siglongjmp(obl, 1);
@@ -34,7 +33,8 @@ void main(int argc, char **argv){
 
     int fd;
     char buf[BUF_SIZE];
-    char username[80], ttyname[80];
+    char ttyname[80];
+    
 
     if(fork() == 0){
         fd = creat(FILE_NAME, 0666);
@@ -57,47 +57,31 @@ void main(int argc, char **argv){
         printf("Type your message:\n");
         fgets(message, 80, stdin);
         message[strlen(message) - 1] = '\n';
-        
 
-        for(int i = 0; i < readed_size; ++i) {
-            if(nameflag) {
-                if(buf[i] != ' ') {
-                    username[j] = buf[i];
-                    j++;
-                } else {
-                    nameflag = 0;
-                    username[j] = '\0';
-                    j = 0;
-                    ttyflag = 1;
-                    i += 2;
+        char *p1, *p2;
+        char *saveptr1, *saveptr2;
+        int i = 0;
+        int tty_d;
+        for(p1 = strtok_r(buf, "\n", &saveptr1); p1; p1 = strtok_r(NULL, "\n", &saveptr1)) {
+            for(p2 = strtok_r(p1, " ", &saveptr2), i = 0; p2; p2 = strtok_r(NULL, " ", &saveptr2), ++i) {
+                if(i) {
+                    strcpy(ttypath, PATH);
+                    strcat(ttypath, p2);
+                    tty_d = open(ttypath, O_WRONLY);
+                    write(tty_d, message, strlen(message));
+                    close(tty_d);
+
+                    strcpy(for_buf, p2);
+                    for_buf[strlen(for_buf)] = '\n';
+                    strcat(term_names, for_buf);
+                    break;
                 }
             } 
-            if(ttyflag) {
-                if(buf[i] != ' ') {
-                    ttyname[j] = buf[i];
-                    j++;
-                } else {
-                    strcpy(for_buf, ttyname);
-                    for_buf[j] = '\n';
-                    strcat(term_names, for_buf);
-
-                    ttyname[j] = '\0';
-                    j = 0;
-                    ttyflag = 0;
-                    int termd;
-                    strcpy(ttypath, PATH);
-                    strcat(ttypath, ttyname);
-                    termd = open(ttypath, O_RDWR);
-                    write(termd, message, strlen(message));
-                    close(termd);
-
-                }
-            }
-            if(buf[i] == '\n') {
-                nameflag = 1;
-            }
         }
+
+
     }
+    
     sigsetjmp(obl, 1);
     sleep(1);
     sleep(1);
