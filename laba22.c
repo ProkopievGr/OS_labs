@@ -39,8 +39,8 @@ void main(int argc, char **argv){
     if(fork() == 0){
         fd = creat(FILE_NAME, 0666);
         dup2(fd, 1);
-        execl("/usr/bin/who", "who", NULL);
         close(fd);
+        execl("/usr/bin/who", "who", NULL);
     } else {
         wait(0);
         fd = open(FILE_NAME, O_RDONLY);
